@@ -1,0 +1,7 @@
+$ oc get deployments
+$ oc set env deployments/dc_name TZ=Asia/Tokyo
+=========
+$ oc create configmap tz-london --from-file=localtime=/usr/share/zoneinfo/Europe/London
+$ oc set volumes deployments/dc_name --add \
+    --type=configmap --name=tz --configmap-name=tz-london \
+    --mount-path=/etc/localtime --sub-path=localtime
