@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  cakephp-secret-token: SHZkYWlfZGR4TGNVMlphT2xldUM4V1RSVG00ekZKX0R4YmhYUzA5bERBNHREdGd5ZkQ=
+  cakephp-security-salt: NlJwSUVOMjdSaTh5UHNtd1dqYkswVThxVDdka2NrYzM1M1ZLYTJwSA==
+  database-password: a3JVdUhqNkJtY1BsSUNDcA==
+  database-user: Y2FrZXBocA==
+kind: Secret
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  labels:
+    app: cakephp-mysql-example
+    template: cakephp-mysql-example
+  name: cakephp-mysql-example
+  namespace: default
+  uid: af12196c-4664-4bb5-99f8-259c4f80db8e
+type: Opaque
+

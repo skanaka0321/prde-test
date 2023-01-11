@@ -1,0 +1,125 @@
+apiVersion: v1
+data:
+  cakephp-secret-token: SHZkYWlfZGR4TGNVMlphT2xldUM4V1RSVG00ekZKX0R4YmhYUzA5bERBNHREdGd5ZkQ=
+  cakephp-security-salt: NlJwSUVOMjdSaTh5UHNtd1dqYkswVThxVDdka2NrYzM1M1ZLYTJwSA==
+  database-password: a3JVdUhqNkJtY1BsSUNDcA==
+  database-user: Y2FrZXBocA==
+kind: Secret
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  labels:
+    app: cakephp-mysql-example
+    template: cakephp-mysql-example
+  name: cakephp-mysql-example
+  namespace: default
+  uid: af12196c-4664-4bb5-99f8-259c4f80db8e
+type: Opaque
+
+[quicklab@upi-0 ~]$ cat mysql.txt 
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  annotations:
+    description: Defines how to deploy the database
+    openshift.io/generated-by: OpenShiftNewApp
+    template.alpha.openshift.io/wait-for-ready: "true"
+  labels:
+    app: cakephp-mysql-example
+    template: cakephp-mysql-example
+  name: mysql
+  namespace: default
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    name: mysql
+  strategy:
+    activeDeadlineSeconds: 21600
+    recreateParams:
+      timeoutSeconds: 600
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      labels:
+        name: mysql
+      name: mysql
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              key: database-user
+              name: cakephp-mysql-example
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: database-password
+              name: cakephp-mysql-example
+        - name: MYSQL_DATABASE
+          value: default
+        - name: MYSQL_DEFAULT_AUTHENTICATION_PLUGIN
+          value: mysql_native_password
+        image: image-registry.openshift-image-registry.svc:5000/openshift/mysql@sha256:5e75fe7ecef8d11cabdb3915887bd81cd481630701fbb9758b867f4db45f841b
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 3306
+          timeoutSeconds: 1
+        name: mysql
+        ports:
+        - containerPort: 3306
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -i
+            - -c
+            - MYSQL_PWD='krUuHj6BmcPlICCp' mysql -h 127.0.0.1 -u cakephp -D default
+              -e 'SELECT 1'
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            memory: 512Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/mysql/data
+          name: data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        sysctls:
+        - name: kernel.shm_rmid_forced
+          value: "1"
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: data
+  test: false
+  triggers:
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - mysql
+      from:
+        kind: ImageStreamTag
+        name: mysql:8.0-el8
+        namespace: openshift
+      lastTriggeredImage: image-registry.openshift-image-registry.svc:5000/openshift/mysql@sha256:5e75fe7ecef8d11cabdb3915887bd81cd481630701fbb9758b867f4db45f841b
+    type: ImageChange
+  - type: ConfigChange
+
